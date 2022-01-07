@@ -48,30 +48,30 @@ Table 1: Outcome Variable and Features
 Figure 1 shows the plots of 2.1M starting and ending e-bike coordinates using datashader. We can see a sharp contrast between the starting and ending coordinates. The starting e-bike coordinates are concentrated in certain spots, which are mostly likely to be the bike stations. Meanwhile, the end coordinates are scattered throughout major roads in Chicago. It means that e-bike trips are far more likely to end than to start on the streets (not docked to bike stations). It suggests that the Divvy bike service team plays an important role in docking e-bikes to bike stations. 
 
 Figure 1: Mapping Start Coordinates vs End Coordinates of Divvy e-bikes
-![plot_combined](https://github.com/lsc4ss-a21/final-project-divvy/blob/main/chart/plot_combined.png)
+![plot_combined](https://github.com/william-wei-zhu/large_scale_divvy/blob/main/chart/plot_combined.png)
 
 
 - note: necessary shape files for geopandas in data cleaning are included in the shape file folder.
 
 ## Model
 Before creating a machine learning model pipeline, we first explored the relationship between seven features and the dependent variable of whether the bike trip ended at a different zip code than starting position. Our seven features included 3 time variables (month, weekday, hour), 2 location variables (starting zip code, starting station (for those trips that started from a station)), one variable that denotes the membership status of the rider, and one variable which describes the length of the bike trip. Here, I listed some of the visualizations (rest are included in chart folder): 
-![features](https://github.com/lsc4ss-a21/final-project-divvy/blob/main/chart/feature.png)
+![features](https://github.com/william-wei-zhu/large_scale_divvy/blob/main/chart/feature.png)
 (Note: while we did not create a visualization for trip duration, on average the bike trip that ends within the same code has a duration of 10.97 min, and bike trip that ends at different zip code has a duration of 15.87 min, as shown in 
-[pyspark_divvy_ML.ipynb](https://github.com/lsc4ss-a21/final-project-divvy/blob/main/pyspark_divvy_ML.ipynb))
+[pyspark_divvy_ML.ipynb](https://github.com/william-wei-zhu/large_scale_divvy/blob/main/pyspark_divvy_ML.ipynb))
 
 As shown in the six charts, month, weekday, and membership status do not seem to be good indicators by themselves. There are some variations in the hours, but the variations are relatively small in magnitude. Both location variables seem to be more helpful indicators, as both distributions demonstrated that there exists consideration variations across starting locations: some locations will have cross-zip-code trips, while others have less. Lastly, while not directly reflected in visualization, the average duration gap of 5 minute gap between two types of rides do seem to be significant enough to provide some prediction power. 
 
-In this project, we adopted two machine learning models for prediction. We first started with the logistic regression model. While taking a rather naive linear assumption, the simplicity of logistic regression model (and ease of interpretation) offers a good baseline. To prevent the issue of contaminating training/testing data, we created machine learning pipelines in [pyspark_divvy_ML.ipynb](https://github.com/lsc4ss-a21/final-project-divvy/blob/main/pyspark_divvy_ML.ipynb). To ensure that the evaluation metrics of the prediction are not random, and to optimize prediction results, we incorporate both cross-validation and hyperparameter tuning in our pipeline. The best model from the pipeline has an accuracy of 0.632 on the test data. The AUC is 0.687. The resulting confusion matrix of logistic regression is shown below. (0 denotes cross-zip-code trips, 1 denotes within-zip-code trips)
+In this project, we adopted two machine learning models for prediction. We first started with the logistic regression model. While taking a rather naive linear assumption, the simplicity of logistic regression model (and ease of interpretation) offers a good baseline. To prevent the issue of contaminating training/testing data, we created machine learning pipelines in [pyspark_divvy_ML.ipynb](https://github.com/william-wei-zhu/large_scale_divvy/blob/main/pyspark_divvy_ML.ipynb). To ensure that the evaluation metrics of the prediction are not random, and to optimize prediction results, we incorporate both cross-validation and hyperparameter tuning in our pipeline. The best model from the pipeline has an accuracy of 0.632 on the test data. The AUC is 0.687. The resulting confusion matrix of logistic regression is shown below. (0 denotes cross-zip-code trips, 1 denotes within-zip-code trips)
 
-![confusion_matrix_lr](https://github.com/lsc4ss-a21/final-project-divvy/blob/main/chart/cmat_lr.PNG)
+![confusion_matrix_lr](https://github.com/william-wei-zhu/large_scale_divvy/blob/main/chart/cmat_lr.PNG)
 
 The logistic regression yields a reasonable prediction. It is not very satisfactory as both the AUC and accuracy are not very high. The confusion matrix also shows considerable portions of false positive and false negative predictions. An important limitation with logistic regression lies on its linear assumption. Considering the relationships between features and dependable variables in the previous chart, it is likely that the relationships are nonlinear. Trees which partition observations in the feature space could perform better. Therefore, we adopt a random forest model as our second model. Similar to the previous attempt, we constructed a pipeline and incorporated cross-validation and hyperparameter tuning in our pipeline. The best model from the pipeline has an accuracy of 0.690 on the test data. The AUC is 0.765. The resulting confusion matrix of a random forest is shown below. (0 denotes cross-zip-code trips, 1 denotes within-zip-code trips)
 
-![confusion_matrix_rf](https://github.com/lsc4ss-a21/final-project-divvy/blob/main/chart/cmat_rf.PNG)
+![confusion_matrix_rf](https://github.com/william-wei-zhu/large_scale_divvy/blob/main/chart/cmat_rf.PNG)
 
 Random forest models certainly performed better than logistic regression, as we anticipated. In fact, it does offer a significantly better AUC score, and it performs significantly better at distinguishing true positive(negative) from false positive(negative). The roc curve below also reflected the same conclusion. 
 
-![roc](https://github.com/lsc4ss-a21/final-project-divvy/blob/main/chart/roc.PNG)
+![roc](https://github.com/william-wei-zhu/large_scale_divvy/blob/main/chart/roc.PNG)
 
 ## Large Scale Computation Consideration
 This section discusses our considerations of scalability of our code, and it could be helpful in addressing large-scale computational problems. We believe our code performs well in the following points:
